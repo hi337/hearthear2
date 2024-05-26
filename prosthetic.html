@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HeartHear</title>
+    <link rel="stylesheet" href="main.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <img src="./img/logo.png" alt="HeartHear Logo" />
+      <button onclick="connectToBluetoothDevice()">
+        Connect to Bluetooth Device
+      </button>
+      <button onclick="onStopButtonClick()">Disconnect</button>
+      <button onclick="connectToSerial()">
+        Connect to arduino
+      </button>
+      <h1>
+        Welcome to HeartHear, the device that can predict cardiovascular
+        diseases such as a heart attack with machine learning!
+      </h1>
+      <p>
+        Blink signal: <span id="blink_signal">0</span>, state of consciousness:
+        <span id="drowsy_signal">awake</span>
+      </p>
+    </div>
+
+    <script>
+      let decoder = new TextDecoder("utf-8");
+
+      let blinkCharacteristic;
+      let writer;
+      let hand_value = 0;
+      let age = 17;
+      let weight = 65;
+      let height = 1.8;
+      let chest_pain = 4;
+      let rbp = 120;
+      let chol = 100;
+      let fbs = 0;
+      let fatigue = false;
+      let breath = false;
+      let pain = false;
+      let max_BPM = 150;
+      let thalassemia = 3;
+      let gender = 1;
+      let hypertension = 0;
+      let preexisting_heart_disease = 0;
+      let smoking_status = 1;
+      let raw_blood_sugar = 70;
+
+      let spo2 = 0;
+      let spo2_id; // id for setInterval
+      let fallen = false;
+
+      function connectToBluetoothDevice() {
+        let serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a2358"; //nano BLE service
+        let blinkUuid = "4970c7cc-7e19-4932-967d-93c4c99fd371"; //blink char
+
+        navigator.bluetooth
+          .requestDevice({ filters: [{ services: [serviceUuid] }] })
+          .then((device) => {
+            return device.gatt.connect();
+          })
+          .then((server) => {
+            return server.getPrimaryService(serviceUuid);
+          })
+          .then((service) => {
+            return Promise.all([service.getCharacteristic(blinkUuid)]);
+          })
+          .then(([blinkChar]) => {
+            blinkCharacteristic = blinkChar;
+            blinkCharacteristic.startNotifications().then((_) => {
+              blinkCharacteristic.addEventListener(
+                "characteristicvaluechanged",
+                handleBlinkNotifications
+              );
+            });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+
+      function onStopButtonClick() {
+        blinkCharacteristic
+          .stopNotifications()
+          .then((_) => {
+            blinkCharacteristic.removeEventListener(
+              "characteristicvaluechanged",
+              handleBlinkNotifications
+            );
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+
+      async function connectToSerial() {
+        // Prompt user to select any serial port.
+        const port = await navigator.serial.requestPort();
+        // Wait for the serial port to open.
+        await port.open({ baudRate: 9600 });
+        writer = port.writable.getWriter();
+      }
+
+      async function handleBlinkNotifications(event) {
+        let value = decoder.decode(event.target.value);
+        if (value != hand_value) {
+            hand_value = value;
+            await writer.write(event.target.value);
+        };
+        document.getElementById("blink_signal").innerHTML = value;
+      }
+
+    </script>
+  </body>
+</html>

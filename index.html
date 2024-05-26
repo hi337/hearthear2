@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HeartHear</title>
+    <link rel="stylesheet" href="main.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="./img/arrhythmia.js"></script>
+    <script src="./img/cardiac_arrest.js"></script>
+    <script src="./draw_graphs.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <img src="./img/logo.png" alt="HeartHear Logo" />
+      <button onclick="connectToBluetoothDevice()">
+        Connect to Bluetooth Device
+      </button>
+      <button onclick="onStopButtonClick()">Disconnect</button>
+      <button onclick="connectToSerial()">Connect to Prosthetic</button>
+      <button onclick="neededInputSection()">Needed Input</button>
+      <button onclick="extraInputSection()">Extra Input</button>
+      <button onclick="outputSection()">Output Section</button>
+      <button onclick="graphsSection()">Graphs Section</button>
+      <h1>
+        Welcome to HeartHear, the device that can predict cardiovascular
+        diseases such as a heart attack with machine learning!
+      </h1>
+      <div id="neededInput" class="hidden">
+        <p>
+          Age:
+          <input
+            id="age"
+            type="number"
+            oninput="editAge()"
+            placeholder="Age"
+            min="0"
+          />
+        </p>
+        <p>
+          Weight (kg):
+          <input
+            id="weight"
+            type="number"
+            oninput="editWeight()"
+            placeholder="Weight"
+            min="0"
+          />
+        </p>
+        <p>
+          Height (m):
+          <input
+            id="height"
+            type="number"
+            oninput="editHeight()"
+            placeholder="Height"
+            min="0"
+          />
+        </p>
+        <p>
+          Gender
+          <select oninput="editGender()" id="gender">
+            <option value="1">Male</option>
+            <option value="0">Female</option>
+          </select>
+        </p>
+        <p>
+          Chest Pain:
+          <select oninput="editChestPain()" id="chest_pain">
+            <option value="1">Typical Angina</option>
+            <option value="2">Atypical Angina</option>
+            <option value="3">Non-Anginal Pain</option>
+            <option value="4">Asymptomatic</option>
+          </select>
+        </p>
+        <p>
+          Resting Systolic Blood Pressure (mmHg):
+          <input
+            id="rbp"
+            type="number"
+            oninput="editRBP()"
+            placeholder="Blood Pressure"
+            min="0"
+          />
+        </p>
+        <p>
+          Serum Cholesterol (mg/dL):
+          <input
+            id="chol"
+            type="number"
+            oninput="editChol()"
+            placeholder="Cholesterol"
+            min="0"
+          />
+        </p>
+        <p>
+          Fasting Blood Sugar (mg/dL):
+          <input
+            id="fbs"
+            type="number"
+            oninput="editFBS()"
+            placeholder="Blood Sugar"
+            min="0"
+          />
+        </p>
+        <p>
+          Thalassemia:
+          <select oninput="editThalassemia()" id="thalassemia">
+            <option value="3">Normal</option>
+            <option value="6">Fixed Defect</option>
+            <option value="7">Reversable Defect</option>
+          </select>
+        </p>
+        <p>
+          Hypertension?:
+          <select oninput="editHypertension()" id="hypertension">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </p>
+        <p>
+          Pre Existing Heart Disease?:
+          <select
+            oninput="editPreexistingHeartDisease()"
+            id="preexisting_heart_disease"
+          >
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </p>
+        <p>
+          Smoking Status:
+          <select oninput="editSmokingStatus()" id="smoking_status">
+            <option value="0">Unknown</option>
+            <option value="1">Never Smoked</option>
+            <option value="2">Formerly Smoked</option>
+            <option value="3">Currently Smoke</option>
+          </select>
+        </p>
+      </div>
+      <div id="extraInput" class="hidden">
+        <p>
+          Shortness of Breath?:
+          <input id="breath" type="checkbox" oninput="editBreath()" />
+        </p>
+        <p>
+          Pain in neck, jaw throat, belly, or back?:
+          <input id="pain" type="checkbox" oninput="editPain()" />
+        </p>
+        <p>
+          Cronic Fatigue?:
+          <input id="fatigue" type="checkbox" oninput="editFatigue()" />
+        </p>
+      </div>
+      <div id="output" class="hidden">
+        <p>
+          Blink signal: <span id="blink_signal">0</span>, state of
+          consciousness: <span id="drowsy_signal">awake</span>
+        </p>
+        <p>
+          Ir Value: <span id="ir_signal">0</span>, Red Value:
+          <span id="red_signal">0</span>, SpO2: <span id="spo2">0</span>
+        </p>
+        <p>EEG signal: <span id="eeg_signal">0</span></p>
+        <p>Heart Rate (BPM): <span id="bpm_signal">74</span></p>
+        <p>ECG signal: <span id="ecg_signal">0</span></p>
+        <p>Fallen down: <span id="fall_signal">No</span></p>
+        <p>
+          Atherosclerosis Prediction:
+          <span id="atherosclerosis_result">Healthy</span>
+        </p>
+        <p>
+          Stroke Prediction:
+          <span id="stroke_result">Healthy</span>
+        </p>
+        <p>
+          Arrhythmia Prediction:
+          <span id="arrhythmia_result">Healthy</span>
+        </p>
+        <p>
+          Cardiac Arrest Prediction:
+          <span id="ca_result">Healthy</span>
+        </p>
+      </div>
+      <div id="graphs" class="hidden">
+        <canvas id="ir_graph" width="400" height="400"></canvas>
+      </div>
+    </div>
+
+    <script>
+      let decoder = new TextDecoder("utf-8");
+      const ir_canvas = document.getElementById("ir_graph");
+      const ir_ctx = ir_canvas.getContext("2d");
+
+      let ir_values = [];
+      let red_values = [];
+      let ecg_values = [];
+      let eeg_values = [];
+
+      let blinkCharacteristic;
+      let drowsyCharacteristic;
+      let ecgCharacteristic;
+      let eegCharacteristic;
+      let irCharacteristic;
+      let redCharacteristic;
+      let bpmCharacteristic;
+      let fallCharacteristic;
+      let writer;
+      let hand_value = 0;
+      let age = 17;
+      let drowsy = 0;
+      let bpm = 74;
+      let weight = 65;
+      let height = 1.8;
+      let chest_pain = 4;
+      let rbp = 120;
+      let chol = 100;
+      let fbs = 0;
+      let fatigue = false;
+      let breath = false;
+      let pain = false;
+      let max_BPM = 150;
+      let thalassemia = 3;
+      let gender = 1;
+      let hypertension = 0;
+      let preexisting_heart_disease = 0;
+      let smoking_status = 1;
+      let raw_blood_sugar = 70;
+
+      let spo2 = 98;
+      let spo2_id; // id for setInterval
+      let fallen = false;
+
+      // setting default values
+      document.getElementById("age").value = 17;
+      document.getElementById("rbp").value = 120;
+      document.getElementById("chol").value = 100;
+      document.getElementById("fbs").value = 75;
+      document.getElementById("chest_pain").value = 4;
+      document.getElementById("thalassemia").value = 3;
+      document.getElementById("weight").value = 65;
+      document.getElementById("height").value = 1.8;
+
+      function connectToBluetoothDevice() {
+        let serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a2358"; //nano BLE service
+        let blinkUuid = "4970c7cc-7e19-4932-967d-93c4c99fd371"; //blink char
+        let drowsyUuid = "39b10001-e8f2-538e-4f6c-d104868a1234"; //drowsy char
+        let eegUuid = "4670ee8f-7e19-4972-967d-6300c909d371"; //eeg char
+        let ecgUuid = "19b10001-e6f1-537e-4f4c-d104768a1236"; //ecg char
+        let irUuid = "19b10001-e8f2-537e-4f6c-d104768a1234"; //PPG char
+        let redUuid = "19b10001-e8f2-537e-4f6c-d304767a1234"; //PPG char
+        let bpmUuid = "0688f65f-14bb-42ec-8c00-a95463bc56ba"; // BPM char
+        let fallUuid = "19b10001-e8f2-537e-4f6c-d104768a1214"; // fallen char
+
+        navigator.bluetooth
+          .requestDevice({ filters: [{ services: [serviceUuid] }] })
+          .then((device) => {
+            return device.gatt.connect();
+          })
+          .then((server) => {
+            return server.getPrimaryService(serviceUuid);
+          })
+          .then((service) => {
+            return Promise.all([
+              service.getCharacteristic(blinkUuid),
+              service.getCharacteristic(drowsyUuid),
+              service.getCharacteristic(eegUuid),
+              service.getCharacteristic(ecgUuid),
+              service.getCharacteristic(irUuid),
+              service.getCharacteristic(redUuid),
+              service.getCharacteristic(bpmUuid),
+              service.getCharacteristic(fallUuid),
+            ]);
+          })
+          .then(
+            ([
+              blinkChar,
+              drowsyChar,
+              eegChar,
+              ecgChar,
+              irChar,
+              redChar,
+              bpmChar,
+              fallChar,
+            ]) => {
+              blinkCharacteristic = blinkChar;
+              drowsyCharacteristic = drowsyChar;
+              eegCharacteristic = eegChar;
+              ecgCharacteristic = ecgChar;
+              irCharacteristic = irChar;
+              redCharacteristic = redChar;
+              bpmCharacteristic = bpmChar;
+              fallCharacteristic = fallChar;
+              blinkCharacteristic.startNotifications().then((_) => {
+                blinkCharacteristic.addEventListener(
+                  "characteristicvaluechanged",
+                  handleBlinkNotifications
+                );
+              });
+              drowsyCharacteristic.startNotifications().then((_) => {
+                drowsyCharacteristic.addEventListener(
+                  "characteristicvaluechanged",
+                  handleDrowsyNotifications
+                );
+              });
+              eegCharacteristic.startNotifications().then((_) => {
+                eegCharacteristic.addEventListener(
+                  "characteristicvaluechanged",
+                  handleEEGNotifications
+                );
+              });
+              ecgCharacteristic.startNotifications().then((_) => {
+                ecgCharacteristic.addEventListener(
+                  "characteristicvaluechanged",
+                  handleECGNotifications
+                );
+              });
+              irCharacteristic.startNotifications().then((_) => {
+                irCharacteristic.addEventListener(
+                  "characteristicvaluechanged",
+                  handleIRNotifications
+                );
+              });
+              redCharacteristic.startNotifications().then((_) => {
+                redCharacteristic.addEventListener(
+                  "characteristicvaluechanged",
+                  handleRedNotifications
+                );
+              });
+              bpmCharacteristic.startNotifications().then((_) => {
+                bpmCharacteristic.addEventListener(
+                  "characteristicvaluechanged",
+                  handleBPMNotifications
+                );
+              });
+              fallCharacteristic.startNotifications().then((_) => {
+                fallCharacteristic.addEventListener(
+                  "characteristicvaluechanged",
+                  handleFallNotifications
+                );
+              });
+            }
+          )
+          .then(() => {
+            spo2_id = setInterval(() => {
+              spo2 = calculate_spo2();
+              document.getElementById("spo2").innerHTML = spo2;
+            }, 10);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+
+      function onStopButtonClick() {
+        blinkCharacteristic
+          .stopNotifications()
+          .then((_) => {
+            blinkCharacteristic.removeEventListener(
+              "characteristicvaluechanged",
+              handleBlinkNotifications
+            );
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+        drowsyCharacteristic
+          .stopNotifications()
+          .then((_) => {
+            drowsyCharacteristic.removeEventListener(
+              "characteristicvaluechanged",
+              handleDrowsyNotifications
+            );
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+        eegCharacteristic
+          .stopNotifications()
+          .then((_) => {
+            eegCharacteristic.removeEventListener(
+              "characteristicvaluechanged",
+              handleEEGNotifications
+            );
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+        ecgCharacteristic
+          .stopNotifications()
+          .then((_) => {
+            ecgCharacteristic.removeEventListener(
+              "characteristicvaluechanged",
+              handleECGNotifications
+            );
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+        irCharacteristic
+          .stopNotifications()
+          .then((_) => {
+            irCharacteristic.removeEventListener(
+              "characteristicvaluechanged",
+              handleIRNotifications
+            );
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+        redCharacteristic
+          .stopNotifications()
+          .then((_) => {
+            redCharacteristic.removeEventListener(
+              "characteristicvaluechanged",
+              handleRedNotifications
+            );
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+        bpmCharacteristic
+          .stopNotifications()
+          .then((_) => {
+            bpmCharacteristic.removeEventListener(
+              "characteristicvaluechanged",
+              handleBPMNotifications
+            );
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+        fallCharacteristic
+          .stopNotifications()
+          .then((_) => {
+            fallCharacteristic.removeEventListener(
+              "characteristicvaluechanged",
+              handleFallNotifications
+            );
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+        clearInterval(spo2_id);
+      }
+
+      async function connectToSerial() {
+        // Prompt user to select any serial port.
+        const port = await navigator.serial.requestPort();
+        // Wait for the serial port to open.
+        await port.open({ baudRate: 9600 });
+        writer = port.writable.getWriter();
+      }
+
+      async function handleBlinkNotifications(event) {
+        let value = decoder.decode(event.target.value);
+        if (value != hand_value) {
+          hand_value = value;
+          await writer.write(event.target.value);
+        }
+        document.getElementById("blink_signal").innerHTML = value;
+      }
+      function handleDrowsyNotifications(event) {
+        let value = decoder.decode(event.target.value);
+        drowsy = parseInt(value);
+        if (drowsy == 1) {
+          document.getElementById("drowsy_signal").innerHTML = "drowsy";
+        } else {
+          document.getElementById("drowsy_signal").innerHTML = "awake";
+        }
+      }
+      function handleEEGNotifications(event) {
+        let value = decoder.decode(event.target.value);
+        document.getElementById("eeg_signal").innerHTML = value;
+        if (eeg_values.length > 200) {
+          eeg_values = eeg_values.slice(-200);
+        } else {
+          eeg_values.push(parseInt(value));
+        }
+      }
+      function handleECGNotifications(event) {
+        let value = decoder.decode(event.target.value);
+        document.getElementById("ecg_signal").innerHTML = value;
+        if (ecg_values.length > 200) {
+          ecg_values = ecg_values.slice(-200);
+        } else {
+          ecg_values.push(parseInt(value));
+        }
+      }
+      function handleIRNotifications(event) {
+        let value = decoder.decode(event.target.value);
+        if (value < 50000) {
+          document.getElementById("ir_signal").innerHTML = "Not Valid";
+        } else {
+          document.getElementById("ir_signal").innerHTML = value;
+        }
+        ir_values.push(parseInt(value));
+        drawIRGraph();
+      }
+      function handleRedNotifications(event) {
+        let value = decoder.decode(event.target.value);
+        document.getElementById("red_signal").innerHTML = value;
+        red_values.push(parseInt(value));
+      }
+      function handleBPMNotifications(event) {
+        let value = decoder.decode(event.target.value);
+        if (value > max_BPM) {
+          max_BPM = value;
+
+          document.getElementById("bpm_signal").innerHTML = value;
+        }
+      }
+      function handleFallNotifications(event) {
+        let value = decoder.decode(event.target.value);
+        if (value == 1 && !fallen) {
+          fallen = True;
+
+          document.getElementById("fall_signal").innerHTML = "Yes";
+          let answer = window.prompt("Calling an Ambulance");
+          document.getElementById("fall_signal").innerHTML = "No";
+        } else if (value == 0 && fallen) {
+          fallen = false;
+        }
+      }
+      function neededInputSection() {
+        document.getElementById("neededInput").classList.toggle("hidden");
+      }
+      function extraInputSection() {
+        document.getElementById("extraInput").classList.toggle("hidden");
+      }
+      function outputSection() {
+        document.getElementById("output").classList.toggle("hidden");
+      }
+      function graphsSection() {
+        document.getElementById("graphs").classList.toggle("hidden");
+      }
+      function editAge() {
+        age = parseInt(document.getElementById("age").value);
+      }
+      function editWeight() {
+        weight = parseFloat(document.getElementById("weight").value);
+      }
+      function editHeight() {
+        weight = parseFloat(document.getElementById("height").value);
+      }
+      function editRBP() {
+        rbp = parseInt(document.getElementById("rbp").value);
+      }
+      function editGender() {
+        gender = parseInt(document.getElementById("gender").value);
+      }
+      function editChol() {
+        chol = parseInt(document.getElementById("chol").value);
+      }
+      function editFBS() {
+        raw_blood_sugar = parseInt(document.getElementById("fbs").value);
+        if (raw_blood_sugar < 120) {
+          fbs = 0;
+        } else {
+          fbs = 1;
+        }
+      }
+      function editHypertension() {
+        hypertension = parseInt(document.getElementById("hypertension").value);
+      }
+      function editPreexistingHeartDisease() {
+        preexisting_heart_disease = parseInt(
+          document.getElementById("preexisting_heart_disease").value
+        );
+      }
+      function editSmokingStatus() {
+        smoking_status = parseInt(
+          document.getElementById("smoking_status").value
+        );
+      }
+      function editChestPain() {
+        chest_pain = parseInt(document.getElementById("chest_pain").value);
+      }
+      function editThalassemia() {
+        thalassemia = parseInt(document.getElementById("thalassemia").value);
+      }
+      function editFatigue() {
+        fatigue = document.getElementById("fatigue").checked;
+      }
+      function editBreath() {
+        breath = document.getElementById("breath").checked;
+      }
+      function editPain() {
+        pain = document.getElementById("pain").checked;
+      }
+      function calculate_spo2() {
+        const MAX_DATA_POINTS = 200;
+
+        // Trim arrays if they exceed the maximum number of data points
+        if (red_values.length > MAX_DATA_POINTS) {
+          red_values = red_values.slice(-MAX_DATA_POINTS);
+        }
+        if (ir_values.length > MAX_DATA_POINTS) {
+          ir_values = ir_values.slice(-MAX_DATA_POINTS);
+        }
+
+        // check if enough datapoints are present
+        if (
+          red_values.length < MAX_DATA_POINTS ||
+          ir_values.length < MAX_DATA_POINTS
+        ) {
+          return spo2;
+        }
+
+        // Calculate the average of red_values
+        let red_sum = red_values.reduce((acc, val) => acc + val, 0);
+        let red_dc = red_sum / red_values.length;
+
+        // Calculate the average of ir_values
+        let ir_sum = ir_values.reduce((acc, val) => acc + val, 0);
+        let ir_dc = ir_sum / ir_values.length;
+
+        // get ac values for SpO2 formula
+        let red_ac = CalculateRMS(...red_values);
+        let ir_ac = CalculateRMS(...ir_values);
+
+        // calculate R and SpO2
+        let R = red_ac / red_dc / (ir_ac / ir_dc);
+        let spo2_value = 110 - 25 * R;
+
+        return spo2;
+      }
+
+      // Root mean squared function for AC component of SpO2 calculation
+      function CalculateRMS(...numbers) {
+        // Check if there are no numbers provided
+        if (numbers.length === 0) {
+          return 0;
+        }
+
+        // Step 1: Square each number
+        const squaredNumbers = numbers.map((num) => num ** 2);
+
+        // Step 2: Find the mean of the squared numbers
+        const meanOfSquares =
+          squaredNumbers.reduce((sum, num) => sum + num, 0) / numbers.length;
+
+        // Step 3: Return the square root of the mean
+        return Math.sqrt(meanOfSquares);
+      }
+
+      // Load the TensorFlow.js model
+      async function loadModel(modelPath) {
+        const model = await tf.loadLayersModel(modelPath);
+        return model;
+      }
+
+      // Make predictions with the loaded model
+      async function predict(model, input) {
+        const output = model.predict(input);
+        const predictions = Array.from(output.dataSync()); // Convert output tensor to array
+        return predictions;
+      }
+
+      // Running prediction models every 5 seconds
+      async function main() {
+        const clevelandModelPath =
+          "../data/models/cleveland_atherosclerosis/model.json"; // Path to the atherosclerosis mode
+        const clevelandModel = await loadModel(clevelandModelPath); //loading atherosclerosis model
+        const strokeModelPath =
+          "../data/models/stroke_prediction_model/model.json"; // path to stroke model
+        const strokeModel = await loadModel(strokeModelPath); //loading stroke model
+
+        setInterval(async () => {
+          // atherosclerosis data gathering and prediction
+          let clevelandInput = tf.tensor2d(
+            [[age, gender, chest_pain, rbp, chol, fbs, max_BPM, thalassemia]],
+            [1, 8]
+          );
+          const atherosclerosisPrediction = await predict(
+            clevelandModel,
+            clevelandInput
+          );
+          if (atherosclerosisPrediction[0] > 0.7) {
+            document.getElementById("atherosclerosis_result").innerText =
+              "At Risk";
+          } else {
+            document.getElementById("atherosclerosis_result").innerText =
+              "Healthy";
+          }
+
+          // stroke data gathering and prediction (BMI is weight divided by height squared)
+          let strokeInput = tf.tensor2d(
+            [
+              [
+                gender,
+                age,
+                hypertension,
+                preexisting_heart_disease,
+                raw_blood_sugar,
+                weight / (height * height),
+                smoking_status,
+              ],
+            ],
+            [1, 7]
+          );
+          const strokePrediction = await predict(strokeModel, strokeInput);
+          if (strokePrediction[0] > 0.7) {
+            document.getElementById("stroke_result").innerText = "At Risk";
+          } else {
+            document.getElementById("stroke_result").innerText = "Healthy";
+          }
+
+          document.getElementById("arrhythmia_result").innerHTML =
+            arrhythmiaDetection(bpm, ecg_values);
+
+          document.getElementById("ca_result").innerHTML = caPrediction(
+            bpm,
+            spo2,
+            drowsy
+          );
+        }, 5000); // Make prediction every 5 seconds
+      }
+      main();
+    </script>
+  </body>
+</html>

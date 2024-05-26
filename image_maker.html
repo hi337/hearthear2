@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Continuous Graph from CSV</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        canvas {
+            border: 1px solid #000;
+        }
+        input {
+            margin: 5px;
+        }
+        button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Continuous Graph from CSV</h1>
+    <input type="file" id="csvFileInput" accept=".csv">
+    <button onclick="uploadCSV()">Upload and Plot</button>
+    <button onclick="saveImage()">Save Graph as Image</button>
+    <canvas id="graphCanvas" width="800" height="400"></canvas>
+
+    <script>
+        let values = [];
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function uploadCSV() {
+            const fileInput = document.getElementById('csvFileInput');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    parseCSV(text);
+                    drawGraph();
+                };
+                reader.readAsText(file);
+            } else {
+                alert('Please select a CSV file');
+            }
+        }
+
+        function parseCSV(text) {
+            const rows = text.split('\n');
+            values = [];
+            for (let row of rows) {
+                const value = parseFloat(row.trim());
+                if (!isNaN(value)) {
+                    values.push(value);
+                }
+            }
+        }
+
+        function drawGraph() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (values.length === 0) {
+                return;
+            }
+
+            const downsampledValues = downsample(values, canvas.width);
+            const maxVal = Math.max(...downsampledValues);
+            const minVal = Math.min(...downsampledValues);
+            const range = maxVal - minVal;
+
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - ((downsampledValues[0] - minVal) / range) * canvas.height);
+
+            for (let i = 1; i < downsampledValues.length; i++) {
+                const x = (i / (downsampledValues.length - 1)) * canvas.width;
+                const y = canvas.height - ((downsampledValues[i] - minVal) / range) * canvas.height;
+                ctx.lineTo(x, y);
+            }
+
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        function downsample(data, targetPoints) {
+            const sampled = [];
+            const bucketSize = Math.floor(data.length / targetPoints);
+            for (let i = 0; i < data.length; i += bucketSize) {
+                const chunk = data.slice(i, i + bucketSize);
+                const avg = chunk.reduce((sum, val) => sum + val, 0) / chunk.length;
+                sampled.push(avg);
+            }
+            return sampled;
+        }
+
+        function saveImage() {
+            const link = document.createElement('a');
+            link.download = 'graph.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    </script>
+</body>
+</html>
