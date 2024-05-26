@@ -183,7 +183,10 @@
         </p>
       </div>
       <div id="graphs" class="hidden">
+        <p>IR Graph</p>
         <canvas id="ir_graph" width="400" height="400"></canvas>
+        <p>ECG Graph</p>
+        <canvas id="ecg_graph" width="400" height="400"></canvas>
       </div>
     </div>
 
@@ -191,6 +194,9 @@
       let decoder = new TextDecoder("utf-8");
       const ir_canvas = document.getElementById("ir_graph");
       const ir_ctx = ir_canvas.getContext("2d");
+
+      const ecg_canvas = document.getElementById("ecg_graph");
+      const ecg_ctx = ecg_canvas.getContext("2d");
 
       let ir_values = [];
       let red_values = [];
@@ -486,6 +492,7 @@
         } else {
           ecg_values.push(parseInt(value));
         }
+        drawECGGraph();
       }
       function handleIRNotifications(event) {
         let value = decoder.decode(event.target.value);
