@@ -623,7 +623,11 @@
         let R = red_ac / red_dc / (ir_ac / ir_dc);
         let spo2_value = 110 - 25 * R;
 
-        return spo2;
+        if(spo2_value <= 100 && spo2_value >= 94) {
+          return spo2_value;
+        } else {
+          return spo2;
+        }
       }
 
       // Root mean squared function for AC component of SpO2 calculation
