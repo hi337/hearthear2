@@ -1,6 +1,9 @@
 p {
   text-align: center;
   font-size: large;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 img {
@@ -9,6 +12,8 @@ img {
 
 h1 {
   font-size: x-large;
+  font-family: "Poppins", sans-serif;
+  font-style: normal;
 }
 
 .container {
@@ -53,4 +58,12 @@ p {
 
 .hidden {
   display: none;
+}
+
+#stroke_result, #atherosclerosis_result, #arrhythmia_result, #ca_result {
+  color: green;
+}
+
+#blink_signal, #drowsy_signal, #ir_signal, #red_signal, #spo2, #eeg_signal, #bpm_signal, #ecg_signal, #fall_signal {
+  color: #AA336A;
 }

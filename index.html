@@ -9,6 +9,9 @@
     <script src="./arrhythmia.js"></script>
     <script src="./cardiac_arrest.js"></script>
     <script src="./draw_graphs.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
   </head>
   <body>
     <div class="container">
@@ -157,10 +160,11 @@
           Blink signal: <span id="blink_signal">0</span>, state of
           consciousness: <span id="drowsy_signal">awake</span>
         </p>
-        <p>
+        <p id="ppg_signals">
           Ir Value: <span id="ir_signal">0</span>, Red Value:
-          <span id="red_signal">0</span>, SpO2: <span id="spo2">0</span>
+          <span id="red_signal">0</span>
         </p>
+        <p>SpO2: <span id="spo2">0</span></p>
         <p>EEG signal: <span id="eeg_signal">0</span></p>
         <p>Heart Rate (BPM): <span id="bpm_signal">74</span></p>
         <p>ECG signal: <span id="ecg_signal">0</span></p>
@@ -496,9 +500,10 @@
       }
       function handleIRNotifications(event) {
         let value = decoder.decode(event.target.value);
-        if (value < 50000) {
-          document.getElementById("ir_signal").innerHTML = "Not Valid";
+        if (value < 5000) {
+          document.getElementById("ppg_signals").classList.add("hidden");
         } else {
+          document.getElementById("ppg_signals").classList.remove("hidden");
           document.getElementById("ir_signal").innerHTML = value;
         }
         ir_values.push(parseInt(value));
@@ -520,10 +525,12 @@
       function handleFallNotifications(event) {
         let value = decoder.decode(event.target.value);
         if (value == 1 && !fallen) {
-          fallen = True;
+          fallen = true;
 
           document.getElementById("fall_signal").innerHTML = "Yes";
-          let answer = window.prompt("Calling an Ambulance");
+          window.alert("Calling an Ambulance");
+          // Once the alert is closed, reset fallen
+          fallen = false;
           document.getElementById("fall_signal").innerHTML = "No";
         } else if (value == 0 && fallen) {
           fallen = false;
@@ -630,7 +637,7 @@
         let R = red_ac / red_dc / (ir_ac / ir_dc);
         let spo2_value = 110 - 25 * R;
 
-        if(spo2_value <= 100 && spo2_value >= 94) {
+        if (spo2_value <= 100 && spo2_value >= 94) {
           return spo2_value;
         } else {
           return spo2;
