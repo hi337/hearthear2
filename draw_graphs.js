@@ -1,26 +1,26 @@
-function drawIRGraph() {
-  ir_ctx.clearRect(0, 0, ir_canvas.width, ir_canvas.height);
+function drawEEGGraph() {
+  eeg_ctx.clearRect(0, 0, eeg_canvas.width, eeg_canvas.height);
 
-  if (ir_values.length === 0) {
+  if (eeg_values.length === 0) {
     return;
   }
 
-  const maxVal = Math.max(...ir_values);
-  const minVal = Math.min(...ir_values);
+  const maxVal = Math.max(...eeg_values);
+  const minVal = Math.min(...eeg_values);
   const range = maxVal - minVal;
 
-  ir_ctx.beginPath();
-  ir_ctx.moveTo(0, ir_canvas.height - ((ir_values[0] - minVal) / range) * ir_canvas.height);
+  eeg_ctx.beginPath();
+  eeg_ctx.moveTo(0, eeg_canvas.height - ((eeg_values[0] - minVal) / range) * eeg_canvas.height);
 
-  for (let i = 1; i < ir_values.length; i++) {
-    const x = (i / (200 - 1)) * ir_canvas.width;
-    const y = ir_canvas.height - ((ir_values[i] - minVal) / range) * ir_canvas.height;
-    ir_ctx.lineTo(x, y);
+  for (let i = 1; i < eeg_values.length; i++) {
+    const x = (i / (200 - 1)) * eeg_canvas.width;
+    const y = eeg_canvas.height - ((eeg_values[i] - minVal) / range) * eeg_canvas.height;
+    eeg_ctx.lineTo(x, y);
   }
 
-  ir_ctx.strokeStyle = "blue";
-  ir_ctx.lineWidth = 1;
-  ir_ctx.stroke();
+  eeg_ctx.strokeStyle = "blue";
+  eeg_ctx.lineWidth = 1;
+  eeg_ctx.stroke();
 }
 
 function drawECGGraph() {

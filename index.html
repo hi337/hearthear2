@@ -487,6 +487,7 @@
         } else {
           eeg_values.push(parseInt(value));
         }
+        drawEEGGraph();
       }
       function handleECGNotifications(event) {
         let value = decoder.decode(event.target.value);
@@ -507,7 +508,6 @@
           document.getElementById("ir_signal").innerHTML = value;
         }
         ir_values.push(parseInt(value));
-        drawIRGraph();
       }
       function handleRedNotifications(event) {
         let value = decoder.decode(event.target.value);
